@@ -1,21 +1,13 @@
 {
   "name": "@ThilinaV98/types-library",
-  "version": "1.0.2",
-  "description": "Your private package",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ThilinaV98/types-library.git"
-  },
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "tsc"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "build": "pnpm -r run build"
   },
   "devDependencies": {
-    "@types/node": "^22.13.0",
     "typescript": "^5.7.3"
   }
 }
