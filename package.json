@@ -1,5 +1,6 @@
 {
   "name": "@ThilinaV98/types-library",
+  "private": true,
   "workspaces": [
     "packages/*"
   ],
@@ -7,6 +8,7 @@
     "build": "pnpm -r run build"
   },
   "devDependencies": {
-    "typescript": "^5.7.3"
+    "typescript": "^5.0.0",
+    "@changesets/cli": "^2.26.0"
   }
 }
