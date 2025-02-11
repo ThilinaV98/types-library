@@ -1,6 +1,6 @@
 {
   "name": "@thilinav98/digiex-types",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Type definitions for DigiEx",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
