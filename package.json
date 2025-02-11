@@ -1,6 +1,5 @@
 {
   "name": "@ThilinaV98/types-library",
-  "private": true,
   "workspaces": [
     "packages/*"
   ],
