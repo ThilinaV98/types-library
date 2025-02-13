@@ -39,18 +39,19 @@ jobs:
         run: |
           if [ ! -d ".changeset" ]; then pnpm changeset init; fi
 
-      - name: Auto-create a Changeset (if missing)
+      - name: Force Create a Changeset If None Exist
         id: check_changes
         run: |
           if [ -z "$(git status --porcelain)" ]; then
-            echo "No changes detected, skipping changeset creation"
-            echo "has_changes=false" >> $GITHUB_ENV
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "Creating a new changeset..."
-            echo -e "---\n\"@thilinav98/digieye-types\": major\n\"@thilinav98/digiex-types\": major\n---\n\nAutomated version bump for all packages" > .changeset/auto-changeset.md
+            echo "No detected changes. Creating an automatic changeset..."
+            mkdir -p .changeset
+            echo -e "---\n\"@thilinav98/digieye-types\": minor\n\"@thilinav98/digiex-types\": minor\n---\n\nAutomated version bump." > .changeset/auto-changeset.md
             git add .changeset
             git commit -m "chore: add automated changeset"
+            echo "has_changes=true" >> $GITHUB_ENV
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected, proceeding with versioning."
             echo "has_changes=true" >> $GITHUB_ENV
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
