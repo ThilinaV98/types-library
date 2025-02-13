@@ -1,5 +1,11 @@
 # @thilinav98/digieye-types
 
+## 4.0.0
+
+### Major Changes
+
+- daf341f: Automated version bump based on commit message.
+
 ## 3.6.0
 
 ### Minor Changes
