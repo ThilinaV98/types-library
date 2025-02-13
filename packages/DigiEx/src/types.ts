@@ -11,3 +11,10 @@ export type DigiExTypes2 = {
   type: "a" | "b";
   age: string;
 };
+
+export type DigiExTypes3 = {
+  id: string;
+  city: string;
+  street: "a" | "b";
+  lane: string;
+};
