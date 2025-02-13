@@ -1,0 +1,80 @@
+name: Node.js Package
+
+on:
+  push:
+    branches:
+      - extended-github-action
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install PNPM
+        run: npm install -g pnpm
+      - name: Install Dependencies (Force Update Lockfile)
+        run: pnpm install --no-frozen-lockfile
+      - name: Install Changesets CLI in Workspace
+        run: pnpm add -w -D @changesets/cli
+      - name: Run Build
+        run: pnpm run build
+      - name: Configure Git
+        run: |
+          git config --global user.name "ThiilnaV98"
+          git config --global user.email "thilinavithana98@gmail.com"
+      - name: Ensure .changeset Folder Exists
+        run: |
+          if [ ! -d ".changeset" ]; then pnpm changeset init; fi
+      - name: Auto-create a Changeset (if missing)
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes detected, skipping changeset creation"
+          else
+            echo "Creating a new changeset..."
+            pnpm changeset add --summary "Automated version bump"
+            git add .changeset
+            git commit -m "chore: add changeset for version bump"
+            git push origin extended-github-action
+          fi
+      - name: Apply Version Changes (Changesets)
+        run: |
+          pnpm changeset version
+          git add .
+          git commit -m "chore: apply version bumps via changesets" || echo "No changes to commit"
+          git push origin extended-github-action || echo "No changes to push"
+
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+      - name: Install PNPM
+        run: npm install -g pnpm
+      - name: Install Dependencies (Force Update Lockfile)
+        run: pnpm install --no-frozen-lockfile
+      - name: Publish DigiEx Package (Force Publish)
+        run: |
+          cd packages/DigiEx
+          pnpm publish --no-git-checks --registry=https://npm.pkg.github.com/ || echo "No changes detected"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Publish DigiEye Package (Force Publish)
+        run: |
+          cd packages/Digieye
+          pnpm publish --no-git-checks --registry=https://npm.pkg.github.com/ || echo "No changes detected"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
