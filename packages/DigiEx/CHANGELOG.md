@@ -1,5 +1,11 @@
 # @thilinav98/digiex-types
 
+## 3.5.0
+
+### Minor Changes
+
+- 9b1293d: Automated version bump.
+
 ## 3.4.0
 
 ### Minor Changes
