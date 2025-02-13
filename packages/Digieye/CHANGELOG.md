@@ -1,5 +1,11 @@
 # @thilinav98/digieye-types
 
+## 4.1.0
+
+### Minor Changes
+
+- ffb2d9e: Automated version bump.
+
 ## 4.0.0
 
 ### Major Changes
