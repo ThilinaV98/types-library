@@ -14,7 +14,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          persist-credentials: true # Allows pushing version changes
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -48,9 +48,9 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           else
             echo "Creating a new changeset..."
-            pnpm changeset add --summary "Automated version bump"
+            echo -e "---\n\"@thilinav98/digieye-types\": major\n\"@thilinav98/digiex-types\": major\n---\n\nAutomated version bump for all packages" > .changeset/auto-changeset.md
             git add .changeset
-            git commit -m "chore: add changeset for version bump"
+            git commit -m "chore: add automated changeset"
             echo "has_changes=true" >> $GITHUB_ENV
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
@@ -59,18 +59,18 @@ jobs:
         id: apply_version
         run: |
           pnpm changeset version
-          if [ -n "$(git status --porcelain)" ]; then
-            git add .
-            git commit -m "chore: apply version bumps via changesets"
-            git push origin extended-github-action
-            echo "has_changes=true" >> $GITHUB_ENV
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
+          git add .
+          git commit -m "chore: apply version bumps via changesets"
+          git push origin extended-github-action
+          echo "has_changes=true" >> $GITHUB_ENV
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
   build:
     needs: install-and-version
     runs-on: ubuntu-latest
-    if: needs.install-and-version.outputs.has_changes == 'true'  # Only runs if there were version changes
+    if: needs.install-and-version.outputs.has_changes == 'true'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -101,7 +101,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
