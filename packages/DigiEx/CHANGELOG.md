@@ -1,5 +1,11 @@
 # @thilinav98/digiex-types
 
+## 3.1.0
+
+### Minor Changes
+
+- e1efce3: Automated version bump.
+
 ## 3.0.0
 
 ### Major Changes
