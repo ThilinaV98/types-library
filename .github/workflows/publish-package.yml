@@ -59,13 +59,18 @@ jobs:
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: Fetch Latest Changes Before Pushing
+        run: |
+          git fetch origin extended-github-action
+          git pull --rebase origin extended-github-action || git rebase --skip
+
       - name: Apply Version Changes (Changesets)
         id: apply_version
         run: |
           pnpm changeset version
           git add .
           git commit -m "chore: apply version bumps via changesets"
-          git push origin extended-github-action
+          git push origin extended-github-action || (git pull --rebase origin extended-github-action && git push origin extended-github-action)
           echo "has_changes=true" >> $GITHUB_ENV
           echo "has_changes=true" >> $GITHUB_OUTPUT
         env:
