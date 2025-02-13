@@ -17,7 +17,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true # Ensures authentication works
-          fetch-depth: 0  # Ensure full commit history is fetched
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,37 +38,35 @@ jobs:
           git config --global user.email "thilinavithana98@gmail.com"
           git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
 
-      - name: Determine Version Bump from Commit Message
-        id: check_version
+      - name: Ensure .changeset Folder Exists
         run: |
-          LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          if [ ! -d ".changeset" ]; then pnpm changeset init; fi
 
-          if [[ "$LAST_COMMIT_MESSAGE" == *"BREAKING CHANGE:"* ]]; then
-            VERSION_TYPE="major"
-          elif [[ "$LAST_COMMIT_MESSAGE" == *"feat:"* ]]; then
-            VERSION_TYPE="minor"
-          elif [[ "$LAST_COMMIT_MESSAGE" == *"fix:"* ]]; then
-            VERSION_TYPE="patch"
+      - name: Force Create a Changeset If None Exist
+        id: check_changes
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No detected changes. Creating an automatic changeset..."
+            mkdir -p .changeset
+            echo -e "---\n\"@thilinav98/digieye-types\": minor\n\"@thilinav98/digiex-types\": minor\n---\n\nAutomated version bump." > .changeset/auto-changeset.md
+            git add .changeset
+            git commit -m "chore: add automated changeset"
+            echo "has_changes=true" >> $GITHUB_ENV
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           else
-            VERSION_TYPE="patch" # Default to patch if no keyword is found
+            echo "Changes detected, proceeding with versioning."
+            echo "has_changes=true" >> $GITHUB_ENV
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
-          echo "Detected version bump: $VERSION_TYPE"
-          echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
-          echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_OUTPUT
-
-      - name: Create Changeset Based on Detected Version
+      - name: Fetch Latest Changes Before Pushing
         run: |
-          mkdir -p .changeset
-          echo -e "---\n\"@thilinav98/digieye-types\": $VERSION_TYPE\n\"@thilinav98/digiex-types\": $VERSION_TYPE\n---\n\nAutomated version bump based on commit message." > .changeset/auto-changeset.md
-          git add .changeset
-          git commit -m "chore: add automated changeset"
+          git fetch origin extended-github-action
+          git pull --rebase origin extended-github-action || git rebase --skip
 
       - name: Apply Version Changes (Changesets)
         id: apply_version
         run: |
-          git fetch origin extended-github-action
-          git pull --rebase origin extended-github-action || git rebase --skip
           pnpm changeset version
           git add .
           git commit -m "chore: apply version bumps via changesets"
