@@ -18,10 +18,3 @@ export type DigiExTypes3 = {
   country: "a" | "b";
   age: string;
 };
-
-export type DigiExTypes4 = {
-  id: string;
-  address: string;
-  lane: "a" | "b";
-  age: string;
-};
