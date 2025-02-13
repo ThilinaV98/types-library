@@ -9,9 +9,9 @@ jobs:
   install-and-version:
     runs-on: ubuntu-latest
     outputs:
-      has_changes: ${{ steps.check_changes.outputs.has_changes }}
+      has_changes: ${{ steps.set_output.outputs.has_changes }}
     permissions:
-      contents: write  # Ensure GitHub Actions can push changes
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -81,10 +81,12 @@ jobs:
           git add .
           git commit -m "chore: apply $VERSION_TYPE version bump via changesets"
           git push origin extended-github-action || (git pull --rebase origin extended-github-action && git push origin extended-github-action)
-          echo "has_changes=true" >> $GITHUB_ENV
-          echo "has_changes=true" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Set Output for `has_changes`
+        id: set_output
+        run: echo "has_changes=true" >> $GITHUB_OUTPUT
 
   build:
     needs: install-and-version
