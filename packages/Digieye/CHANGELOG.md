@@ -1,5 +1,11 @@
 # @thilinav98/digieye-types
 
+## 3.0.0
+
+### Major Changes
+
+- Test version
+
 ## 2.0.0
 
 ### Major Changes
