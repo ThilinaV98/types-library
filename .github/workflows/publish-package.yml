@@ -102,10 +102,16 @@ jobs:
       contents: write
       packages: write
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repository and Pull Latest Changes
         uses: actions/checkout@v4
         with:
           persist-credentials: true
+          fetch-depth: 0  # Ensure full history is fetched
+
+      - name: Ensure Latest Changes Are Applied
+        run: |
+          git fetch origin extended-github-action
+          git reset --hard origin/extended-github-action
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
