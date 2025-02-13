@@ -10,11 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       has_changes: ${{ steps.check_changes.outputs.has_changes }}
+    permissions:
+      contents: write  # Ensure GitHub Actions can push changes
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true # Allows pushing version changes
+          persist-credentials: true # Ensures authentication works
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,6 +36,7 @@ jobs:
         run: |
           git config --global user.name "ThilinaV98"
           git config --global user.email "thilinavithana98@gmail.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
 
       - name: Ensure .changeset Folder Exists
         run: |
