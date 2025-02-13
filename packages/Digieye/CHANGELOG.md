@@ -1,5 +1,11 @@
 # @thilinav98/digieye-types
 
+## 3.2.0
+
+### Minor Changes
+
+- bbf7408: Automated version bump.
+
 ## 3.1.0
 
 ### Minor Changes
