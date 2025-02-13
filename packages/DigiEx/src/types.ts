@@ -12,3 +12,9 @@ export type DigiExTypes2 = {
   age: string;
 };
 
+export type DigiExTypes3 = {
+  id: string;
+  state: string;
+  country: "a" | "b";
+  age: string;
+};
