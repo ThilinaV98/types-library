@@ -1,5 +1,11 @@
 # @thilinav98/digiex-types
 
+## 5.1.0
+
+### Minor Changes
+
+- 3fe813e: Automated version bump based on commit message.
+
 ## 5.0.0
 
 ### Major Changes
