@@ -1,5 +1,11 @@
 # @thilinav98/digiex-types
 
+## 4.1.1
+
+### Patch Changes
+
+- 6f7fde5: Automated version bump based on commit message.
+
 ## 4.1.0
 
 ### Minor Changes
