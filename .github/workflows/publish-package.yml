@@ -62,21 +62,12 @@ jobs:
           echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
           echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_OUTPUT
 
-      - name: Create Changeset File Based on Commit Message
+      - name: Create Changeset File and Apply Version Changes in a Single Commit
         run: |
           mkdir -p .changeset
           echo -e "---\n\"@thilinav98/digieye-types\": $VERSION_TYPE\n\"@thilinav98/digiex-types\": $VERSION_TYPE\n---\n\nAutomated version bump based on commit message." > .changeset/auto-changeset.md
+    
           git add .changeset
-          git commit -m "chore: add changeset for $VERSION_TYPE version bump"
-
-      - name: Fetch Latest Changes Before Pushing
-        run: |
-          git fetch origin extended-github-action
-          git pull --rebase origin extended-github-action || git rebase --skip
-
-      - name: Apply Version Changes (Changesets)
-        id: apply_version
-        run: |
           pnpm changeset version
           git add .
           git commit -m "chore: apply $VERSION_TYPE version bump via changesets"
