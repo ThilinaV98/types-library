@@ -53,26 +53,19 @@ jobs:
           # Detect changes in packages
           if git diff --name-only HEAD~1 HEAD | grep -q "packages/Digieye/"; then
             DIGIEYE_CHANGED=true
-            CHANGED_PACKAGES+="\"@thilinav98/digieye-types\": "
           fi
           if git diff --name-only HEAD~1 HEAD | grep -q "packages/DigiEx/"; then
             DIGIEX_CHANGED=true
-            CHANGED_PACKAGES+="\"@thilinav98/digiex-types\": "
           fi
 
           # Exit early if no packages changed
-          if [ -z "$CHANGED_PACKAGES" ]; then
+          if [ "$DIGIEYE_CHANGED" = false ] && [ "$DIGIEX_CHANGED" = false ]; then
             echo "No package changes detected. Skipping version bump."
             echo "has_changes=false" >> $GITHUB_ENV
             exit 0
           fi
 
-          echo "Changed Packages:"
-          echo -e "$CHANGED_PACKAGES"
-
-          echo "CHANGED_PACKAGES<<EOF" >> $GITHUB_ENV
-          echo -e "$CHANGED_PACKAGES" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          echo "Packages changed: $CHANGED_PACKAGES"
 
       - name: Determine Version Bump Type from Commit Message
         id: check_version
@@ -98,22 +91,21 @@ jobs:
           mkdir -p .changeset
 
           # Ensure CHANGED_PACKAGES is not empty before writing
-          if [ -z "$CHANGED_PACKAGES" ]; then
+          if [ "$DIGIEYE_CHANGED" = false ] && [ "$DIGIEX_CHANGED" = false ]; then
             echo "No changes detected. Skipping changeset creation."
             exit 0
           fi
 
-          # Apply the correct version type to the modified packages
-          FORMATTED_CHANGES=""
-          if [ "$DIGIEYE_CHANGED" = "true" ]; then
-            FORMATTED_CHANGES+="\"@thilinav98/digieye-types\": $VERSION_TYPE\n"
+          echo -e "---" > .changeset/auto-changeset.md
+          
+          if [ "$DIGIEYE_CHANGED" = true ]; then
+            echo -e "\"@thilinav98/digieye-types\": $VERSION_TYPE" >> .changeset/auto-changeset.md
           fi
-          if [ "$DIGIEX_CHANGED" = "true" ]; then
-            FORMATTED_CHANGES+="\"@thilinav98/digiex-types\": $VERSION_TYPE\n"
+          
+          if [ "$DIGIEX_CHANGED" = true ]; then
+            echo -e "\"@thilinav98/digiex-types\": $VERSION_TYPE" >> .changeset/auto-changeset.md
           fi
 
-          echo -e "---" > .changeset/auto-changeset.md
-          echo -e "$FORMATTED_CHANGES" >> .changeset/auto-changeset.md
           echo -e "---\n\nAutomated version bump based on commit message." >> .changeset/auto-changeset.md
 
           cat .changeset/auto-changeset.md  # Debugging - show the changeset file
@@ -136,6 +128,7 @@ jobs:
       - name: Set Output for `has_changes`
         id: set_output
         run: echo "has_changes=true" >> $GITHUB_OUTPUT
+
 
   build:
     needs: install-and-version
