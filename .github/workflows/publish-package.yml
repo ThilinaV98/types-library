@@ -60,6 +60,7 @@ jobs:
             CHANGED_PACKAGES+="\"@thilinav98/digiex-types\": patch\n"
           fi
 
+          # Exit early if no packages changed
           if [ -z "$CHANGED_PACKAGES" ]; then
             echo "No package changes detected. Skipping version bump."
             echo "has_changes=false" >> $GITHUB_ENV
@@ -95,6 +96,13 @@ jobs:
       - name: Create Changeset File Dynamically for Only Modified Packages
         run: |
           mkdir -p .changeset
+
+          # Ensure CHANGED_PACKAGES is not empty before writing
+          if [ -z "$CHANGED_PACKAGES" ]; then
+            echo "No changes detected. Skipping changeset creation."
+            exit 0
+          fi
+
           echo -e "---" > .changeset/auto-changeset.md
           echo -e "$CHANGED_PACKAGES" >> .changeset/auto-changeset.md
           echo -e "---\n\nAutomated version bump based on commit message." >> .changeset/auto-changeset.md
@@ -103,6 +111,13 @@ jobs:
 
           git add .changeset
           pnpm changeset version
+          
+          # Check if `pnpm changeset version` actually modified files
+          if git diff --quiet; then
+            echo "No version changes detected. Skipping commit."
+            exit 0
+          fi
+
           git add .
           git commit -m "chore: apply $VERSION_TYPE version bump via changesets"
           git push origin extended-github-action || (git pull --rebase origin extended-github-action && git push origin extended-github-action)
