@@ -43,27 +43,21 @@ jobs:
         run: |
           if [ ! -d ".changeset" ]; then pnpm changeset init; fi
 
-      - name: Determine Which Packages Were Modified
+      - name: Detect Modified Packages
         id: detect_changes
         run: |
           DIGIEYE_CHANGED=false
           DIGIEX_CHANGED=false
+          CHANGED_PACKAGES=""
 
           # Detect changes in packages
           if git diff --name-only HEAD~1 HEAD | grep -q "packages/Digieye/"; then
             DIGIEYE_CHANGED=true
+            CHANGED_PACKAGES+="\"@thilinav98/digieye-types\": patch\n"
           fi
           if git diff --name-only HEAD~1 HEAD | grep -q "packages/DigiEx/"; then
             DIGIEX_CHANGED=true
-          fi
-
-          # Create the list of changed packages dynamically
-          CHANGED_PACKAGES=""
-          if [ "$DIGIEYE_CHANGED" = "true" ]; then
-            CHANGED_PACKAGES+="\"@thilinav98/digieye-types\": "
-          fi
-          if [ "$DIGIEX_CHANGED" = "true" ]; then
-            CHANGED_PACKAGES+="\"@thilinav98/digiex-types\": "
+            CHANGED_PACKAGES+="\"@thilinav98/digiex-types\": patch\n"
           fi
 
           if [ -z "$CHANGED_PACKAGES" ]; then
@@ -72,10 +66,12 @@ jobs:
             exit 0
           fi
 
-          echo "Changed Packages: $CHANGED_PACKAGES"
+          echo "Changed Packages:"
+          echo -e "$CHANGED_PACKAGES"
 
-          echo "CHANGED_PACKAGES=$CHANGED_PACKAGES" >> $GITHUB_ENV
-          echo "CHANGED_PACKAGES=$CHANGED_PACKAGES" >> $GITHUB_OUTPUT
+          echo "CHANGED_PACKAGES<<EOF" >> $GITHUB_ENV
+          echo -e "$CHANGED_PACKAGES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Determine Version Bump Type from Commit Message
         id: check_version
@@ -99,7 +95,11 @@ jobs:
       - name: Create Changeset File Dynamically for Only Modified Packages
         run: |
           mkdir -p .changeset
-          echo -e "---\n$CHANGED_PACKAGES $VERSION_TYPE\n---\n\nAutomated version bump based on commit message." > .changeset/auto-changeset.md
+          echo -e "---" > .changeset/auto-changeset.md
+          echo -e "$CHANGED_PACKAGES" >> .changeset/auto-changeset.md
+          echo -e "---\n\nAutomated version bump based on commit message." >> .changeset/auto-changeset.md
+
+          cat .changeset/auto-changeset.md  # Debugging - show the changeset file
 
           git add .changeset
           pnpm changeset version
