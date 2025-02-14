@@ -53,11 +53,11 @@ jobs:
           # Detect changes in packages
           if git diff --name-only HEAD~1 HEAD | grep -q "packages/Digieye/"; then
             DIGIEYE_CHANGED=true
-            CHANGED_PACKAGES+="\"@thilinav98/digieye-types\": patch\n"
+            CHANGED_PACKAGES+="\"@thilinav98/digieye-types\": "
           fi
           if git diff --name-only HEAD~1 HEAD | grep -q "packages/DigiEx/"; then
             DIGIEX_CHANGED=true
-            CHANGED_PACKAGES+="\"@thilinav98/digiex-types\": patch\n"
+            CHANGED_PACKAGES+="\"@thilinav98/digiex-types\": "
           fi
 
           # Exit early if no packages changed
@@ -79,11 +79,11 @@ jobs:
         run: |
           LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
 
-          if [[ "$LAST_COMMIT_MESSAGE" == *"BREAKING CHANGE:"* ]]; then
+          if echo "$LAST_COMMIT_MESSAGE" | grep -q "BREAKING CHANGE:"; then
             VERSION_TYPE="major"
-          elif [[ "$LAST_COMMIT_MESSAGE" == *"feat:"* ]]; then
+          elif echo "$LAST_COMMIT_MESSAGE" | grep -q "feat:"; then
             VERSION_TYPE="minor"
-          elif [[ "$LAST_COMMIT_MESSAGE" == *"fix:"* ]]; then
+          elif echo "$LAST_COMMIT_MESSAGE" | grep -q "fix:"; then
             VERSION_TYPE="patch"
           else
             VERSION_TYPE="patch" # Default to patch if no keyword is found
@@ -103,8 +103,17 @@ jobs:
             exit 0
           fi
 
+          # Apply the correct version type to the modified packages
+          FORMATTED_CHANGES=""
+          if [ "$DIGIEYE_CHANGED" = "true" ]; then
+            FORMATTED_CHANGES+="\"@thilinav98/digieye-types\": $VERSION_TYPE\n"
+          fi
+          if [ "$DIGIEX_CHANGED" = "true" ]; then
+            FORMATTED_CHANGES+="\"@thilinav98/digiex-types\": $VERSION_TYPE\n"
+          fi
+
           echo -e "---" > .changeset/auto-changeset.md
-          echo -e "$CHANGED_PACKAGES" >> .changeset/auto-changeset.md
+          echo -e "$FORMATTED_CHANGES" >> .changeset/auto-changeset.md
           echo -e "---\n\nAutomated version bump based on commit message." >> .changeset/auto-changeset.md
 
           cat .changeset/auto-changeset.md  # Debugging - show the changeset file
