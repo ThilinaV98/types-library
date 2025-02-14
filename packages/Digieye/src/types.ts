@@ -5,3 +5,11 @@ export type DigiEyeTypes = {
   templateName: string;
   templateLabel: string;
 };
+
+export type DigiEyeTypes2 = {
+  id: string;
+  name: string;
+  templateId: string;
+  templateName: string;
+  templateLabel: string;
+};
