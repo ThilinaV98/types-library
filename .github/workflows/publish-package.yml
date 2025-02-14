@@ -43,6 +43,25 @@ jobs:
         run: |
           if [ ! -d ".changeset" ]; then pnpm changeset init; fi
 
+      - name: Detect Changed Packages
+        id: detect_changes
+        run: |
+          DIGIEYE_CHANGED=false
+          DIGIEX_CHANGED=false
+
+          # Check which package folders have changes
+          if git diff --name-only HEAD~1 | grep -q "packages/Digieye/"; then
+            DIGIEYE_CHANGED=true
+          fi
+          if git diff --name-only HEAD~1 | grep -q "packages/DigiEx/"; then
+            DIGIEX_CHANGED=true
+          fi
+
+          echo "DIGIEYE_CHANGED=$DIGIEYE_CHANGED" >> $GITHUB_ENV
+          echo "DIGIEX_CHANGED=$DIGIEX_CHANGED" >> $GITHUB_ENV
+          echo "DIGIEYE_CHANGED=$DIGIEYE_CHANGED" >> $GITHUB_OUTPUT
+          echo "DIGIEX_CHANGED=$DIGIEX_CHANGED" >> $GITHUB_OUTPUT
+
       - name: Determine Version Bump Type from Commit Message
         id: check_version
         run: |
@@ -62,12 +81,34 @@ jobs:
           echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
           echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_OUTPUT
 
-      - name: Create Changeset File and Apply Version Changes in a Single Commit
+      - name: Create Changeset File for Modified Packages
         run: |
           mkdir -p .changeset
-          echo -e "---\n\"@thilinav98/digieye-types\": $VERSION_TYPE\n\"@thilinav98/digiex-types\": $VERSION_TYPE\n---\n\nAutomated version bump based on commit message." > .changeset/auto-changeset.md
-    
+
+          # Create an empty changeset file
+          CHANGESET_CONTENT="---\n"
+
+          # Add packages that were changed
+          if [[ "$DIGIEYE_CHANGED" == "true" ]]; then
+            CHANGESET_CONTENT+="\"@thilinav98/digieye-types\": $VERSION_TYPE\n"
+          fi
+          if [[ "$DIGIEX_CHANGED" == "true" ]]; then
+            CHANGESET_CONTENT+="\"@thilinav98/digiex-types\": $VERSION_TYPE\n"
+          fi
+
+          # If no packages were changed, exit early
+          if [[ "$CHANGESET_CONTENT" == "---\n" ]]; then
+            echo "No package changes detected, skipping changeset creation."
+            exit 0
+          fi
+
+          # Finish writing the changeset file
+          CHANGESET_CONTENT+="---\n\nAutomated version bump based on commit message."
+          echo -e "$CHANGESET_CONTENT" > .changeset/auto-changeset.md
+
           git add .changeset
+
+          # Run changeset version and commit all changes in one commit
           pnpm changeset version
           git add .
           git commit -m "chore: apply $VERSION_TYPE version bump via changesets"
@@ -134,6 +175,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Publish DigiEx Package (Force Publish)
+        if: env.DIGIEX_CHANGED == 'true'
         run: |
           cd packages/DigiEx
           pnpm publish --no-git-checks --registry=https://npm.pkg.github.com/ || echo "No changes detected"
@@ -141,6 +183,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Publish DigiEye Package (Force Publish)
+        if: env.DIGIEYE_CHANGED == 'true'
         run: |
           cd packages/Digieye
           pnpm publish --no-git-checks --registry=https://npm.pkg.github.com/ || echo "No changes detected"
