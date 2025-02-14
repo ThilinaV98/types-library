@@ -91,7 +91,7 @@ jobs:
         run: |
           mkdir -p .changeset
 
-          # Ensure CHANGED_PACKAGES is not empty before writing
+          # Ensure at least one package was modified before proceeding
           if [ "$DIGIEYE_CHANGED" = false ] && [ "$DIGIEX_CHANGED" = false ]; then
             echo "No changes detected. Skipping changeset creation."
             exit 0
@@ -111,10 +111,11 @@ jobs:
 
           cat .changeset/auto-changeset.md  # Debugging - show the changeset file
 
-          git add .changeset
+      - name: Apply Version Changes and Check for Modifications
+        run: |
           pnpm changeset version
           
-          # Check if `pnpm changeset version` actually modified files
+          # Check if package.json files were modified
           if git diff --quiet; then
             echo "No version changes detected. Skipping commit."
             exit 0
