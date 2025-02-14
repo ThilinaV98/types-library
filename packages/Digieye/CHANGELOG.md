@@ -1,5 +1,11 @@
 # @thilinav98/digieye-types
 
+## 5.1.5
+
+### Patch Changes
+
+- 88418e8: Automated version bump based on commit message.
+
 ## 5.1.4
 
 ### Patch Changes
